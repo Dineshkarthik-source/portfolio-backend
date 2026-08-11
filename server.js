@@ -52,14 +52,17 @@ app.post('/api/contact', async (req, res) => {
   }
 });
 
-// Public: Dhinesh logs in with the admin password to get a token
+// Public: Dhinesh logs in with the admin access code to get a token
 app.post('/api/login', async (req, res) => {
   try {
     const { password } = req.body;
     if (!password) return res.status(400).json({ error: 'Password is required' });
 
-    const hash = process.env.ADMIN_PASSWORD_HASH;
-    const isMatch = await bcrypt.compare(password, hash);
+    const accessCode = process.env.ADMIN_ACCESS_CODE;
+    if (!accessCode) {
+      return res.status(500).json({ error: "Admin access code is not configured. Set ADMIN_ACCESS_CODE in the site's environment variables." });
+    }
+    const isMatch = password === accessCode;
     if (!isMatch) return res.status(401).json({ error: 'Incorrect password' });
 
     const token = jwt.sign({ role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '12h' });
